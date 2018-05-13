@@ -56,7 +56,7 @@ if ($modx->lexicon) {
 }
 
 if (isset($scriptProperties['data'])) {
-    $scriptProperties = array_merge($scriptProperties, $modx->fromJson($scriptProperties['data']));
+    $scriptProperties = array_merge($modx->fromJson($scriptProperties['data']),$scriptProperties);
 }
 
 
@@ -143,19 +143,20 @@ switch ($task) {
 
 
         }
-
+        if (isset($postvalues['newcategory']) && !empty($postvalues['newcategory'])) {
+            $postvalues['category'] = $postvalues['newcategory'];
+        }
         if (isset($postvalues['jsonexport'])) {
             $postvalues = $modx->migx->importconfig($modx->fromJson($postvalues['jsonexport']));
         }
-
-
         if ($scriptProperties['object_id'] == 'new') {
             $object = $modx->newObject($classname);
             $tempvalues['createdon'] = strftime('%Y-%m-%d %H:%M:%S');
             $postvalues['createdby'] = $modx->user->get('id');
         } else {
             $object = $modx->getObject($classname, $scriptProperties['object_id']);
-            if (empty($object)) return $modx->error->failure($modx->lexicon('quip.thread_err_nf'));
+            if (empty($object))
+                return $modx->error->failure($modx->lexicon('quip.thread_err_nf'));
             $postvalues['editedon'] = strftime('%Y-%m-%d %H:%M:%S');
             $postvalues['editedby'] = $modx->user->get('id');
             $tempvalues['createdon'] = $object->get('createdon');
@@ -175,22 +176,104 @@ switch ($task) {
             }
 
         }
-        
+
+        if (isset($postvalues['formlayouts'])) {
+            $newtabs = array();
+            $formlayouts = $modx->fromJson($postvalues['formlayouts']);
+            if (is_array($formlayouts) && count($formlayouts) > 0) {
+                $fields = array();
+                $tab = false;
+                $layout_id = 0; 
+                $column_id = 0;
+                $columnwidth = 0;
+                $columncaption = '';
+                $columnstyle = '';
+                $columnminwidth = '';                          
+                $layoutcaption = '';
+                $layoutstyle = '';                   
+                foreach ($formlayouts as $formlayout) {
+                    $type = $modx->getOption('MIGXtype', $formlayout, '');
+                    switch ($type) {
+                        case 'formtab':
+                            if ($tab) {
+                                //next tab
+                                $tab['fields'] = $fields;
+                                $newtabs[] = $tab;
+                                $fields = array();
+                            }
+                            $tab = $formlayout;
+                            $layout_id = 0; 
+                            $column_id = 0;
+                            $columnwidth = 0; 
+                            $columncaption = '';
+                            $columnstyle = '';
+                            $columnminwidth = '';                          
+                            $layoutcaption = '';
+                            $layoutstyle = '';                                                         
+                            break;
+                        case 'layout':
+                            $layout_id++;
+                            $column_id = 0;
+                            $columnwidth = 0;
+                            $columncaption = '';
+                            $columnstyle = '';
+                            $columnminwidth = '';                          
+                            $layoutcaption = $modx->getOption('MIGXlayoutcaption', $formlayout, '');
+                            $layoutstyle = $modx->getOption('MIGXlayoutstyle', $formlayout, '');                            
+                            break;
+                        case 'column':
+                            $column_id++;
+                            $columnwidth = $modx->getOption('field', $formlayout, '');
+                            $columnminwidth = $modx->getOption('MIGXcolumnminwidth', $formlayout, '');
+                            $columncaption = $modx->getOption('MIGXcolumncaption', $formlayout, '');
+                            $columnstyle = $modx->getOption('MIGXcolumnstyle', $formlayout, '');
+                            break;
+                        case 'field':
+                            if (!$tab) {
+                                $tab = array();
+                                $tab['caption'] = 'undefined';
+                            }
+                            $field = $formlayout;
+                            $field['MIGXlayoutid'] = $layout_id;
+                            $field['MIGXcolumnid'] = $column_id;
+                            $field['MIGXcolumnwidth'] = $columnwidth;
+                            $field['MIGXcolumnminwidth'] = $columnminwidth;
+                            $field['MIGXcolumnstyle'] = $columnstyle;
+                            $field['MIGXcolumncaption'] = $columncaption;
+                            $field['MIGXlayoutstyle'] = $layoutstyle;
+                            $field['MIGXlayoutcaption'] = $layoutcaption;                            
+                            $fields[] = $field;
+                            break;
+                    }
+
+
+                }
+                if ($tab) {
+                    //last tab
+                    $tab['fields'] = $fields;
+                    $newtabs[] = $tab;
+                    $fields = array();
+                }
+                $postvalues['formtabs'] = $modx->toJson($newtabs);
+            }
+
+        }
+
         $newcolumns = array();
         if (isset($postvalues['columns'])) {
             $columns = $modx->fromJson($postvalues['columns']);
-            if (is_array($columns) && count($columns) > 0){ 
+            if (is_array($columns) && count($columns) > 0) {
                 foreach ($columns as $column) {
-                    if (isset($column['customrenderer']) && !empty($column['customrenderer'])){
+                    if (isset($column['customrenderer']) && !empty($column['customrenderer'])) {
                         $column['renderer'] = $column['customrenderer'];
-                        
+
                     }
                     $newcolumns[] = $column;
                 }
                 $postvalues['columns'] = $modx->toJson($newcolumns);
             }
 
-        }        
+        }
 
         //handle published
         $postvalues['published'] = isset($postvalues['published']) ? $postvalues['published'] : '1';
@@ -232,6 +315,7 @@ switch ($task) {
         if (isset($tempvalues['publishedon']) && empty($postvalues['ow_publishedon'])) {
             $postvalues['publishedon'] = $tempvalues['publishedon'];
         }
+      
         /* handle alias
         if (empty($postvalues['ow_alias'])) {
 
@@ -317,7 +401,8 @@ $options = array(
         '.msg.php',
         '.tpl.php'),
     );
-if ($modx->getOption('cache_db')) $options['objects'] = '*';
+if ($modx->getOption('cache_db'))
+    $options['objects'] = '*';
 $results = $modx->cacheManager->clearCache($paths, $options);
 
 ?>

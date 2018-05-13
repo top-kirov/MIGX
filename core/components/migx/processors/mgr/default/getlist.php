@@ -11,6 +11,7 @@ if (isset($config['use_custom_prefix']) && !empty($config['use_custom_prefix']))
 
 if (!empty($config['packageName'])) {
     $packageNames = explode(',', $config['packageName']);
+    $packageName = isset($packageNames[0]) ? $packageNames[0] : '';    
 
     if (count($packageNames) == '1') {
         //for now connecting also to foreign databases, only with one package by default possible
@@ -27,6 +28,9 @@ if (!empty($config['packageName'])) {
         }
         $xpdo = &$modx;
     }
+    if ($this->modx->lexicon) {
+        $this->modx->lexicon->load($packageName . ':default');
+    }    
 }else{
     $xpdo = &$modx;    
 }
@@ -39,16 +43,19 @@ $joinalias = isset($config['join_alias']) ? $config['join_alias'] : '';
 
 if (!empty($joinalias)) {
     if ($fkMeta = $xpdo->getFKDefinition($classname, $joinalias)) {
+        //print_r($fkMeta);
+
         $joinclass = $fkMeta['class'];
-        $joinfield = $fkMeta[$fkMeta['owner']];
+        if($fkMeta['owner'] == 'foreign'){
+            $joinfield = $fkMeta['foreign'];
+		    //$parent_joinfield = $fkMeta['local']; 
+		} elseif ($fkMeta['owner'] == 'local'){
+            $joinfield = $fkMeta['local'];
+		    //$parent_joinfield = $fkMeta['foreign']; 
+		}
     } else {
         $joinalias = '';
     }
-}
-
-
-if ($modx->lexicon) {
-    $modx->lexicon->load($packageName . ':default');
 }
 
 /* setup default properties */
@@ -58,6 +65,7 @@ $start = $modx->getOption('start', $scriptProperties, 0);
 $limit = $modx->getOption('limit', $scriptProperties, 20);
 $sort = !empty($config['getlistsort']) ? $config['getlistsort'] : $xpdo->getPK($classname);
 $sort = $modx->getOption('sort', $scriptProperties, $sort);
+$requestsort = $modx->getOption('sort', $scriptProperties, '');
 $dir = !empty($config['getlistsortdir']) ? $config['getlistsortdir'] : 'ASC';
 $dir = $modx->getOption('dir', $scriptProperties, $dir);
 $showtrash = $modx->getOption('showtrash', $scriptProperties, '');
@@ -68,7 +76,7 @@ $resource_id = !empty($object_id) ? $object_id : $resource_id;
 $sortConfig = $modx->getOption('sortconfig', $config, '');
 
 if (!empty($sortConfig)) {
-    $sort = '';
+    $sort = !empty($requestsort) ? $requestsort : '';
     if (!is_array($sortConfig)) {
         $sortConfig = $modx->fromJson($sortConfig);
     }
@@ -76,6 +84,11 @@ if (!empty($sortConfig)) {
 
 $where = !empty($config['getlistwhere']) ? $config['getlistwhere'] : '';
 $where = $modx->getOption('where', $scriptProperties, $where);
+
+$chunk = $modx->newObject('modChunk');
+$chunk->setCacheable(false);
+$chunk->setContent($where);
+$where = $chunk->process($scriptProperties);
 
 $c = $xpdo->newQuery($classname);
 $c->select($xpdo->getSelectColumns($classname, $classname));
@@ -126,8 +139,13 @@ if (isset($config['gridfilters']) && count($config['gridfilters']) > 0) {
 
 
 if ($modx->migx->checkForConnectedResource($resource_id, $config)) {
+
     if (!empty($joinalias)) {
-        $c->where(array($joinalias . '.' . $joinfield => $resource_id));
+        $joinvalue = $resource_id;
+        if ($parent_object = $modx->getObject($joinclass,$resource_id)){
+			$joinvalue = $parent_object->get($joinfield);
+        }
+        $c->where(array($joinalias . '.' . $joinfield => $joinvalue));
     } else {
         $c->where(array($classname . '.resource_id' => $resource_id));
     }

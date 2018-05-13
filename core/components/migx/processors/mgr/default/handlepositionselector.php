@@ -25,62 +25,17 @@ if (!empty($config['packageName'])) {
         }
         $xpdo = &$modx;
     }
-}else{
-    $xpdo = &$modx;    
+} else {
+    $xpdo = &$modx;
 }
 
-$classname = $config['classname'];
-$checkdeleted = isset($config['gridactionbuttons']['toggletrash']['active']) &&
-    !empty($config['gridactionbuttons']['toggletrash']['active']) ? true : false;
-$newpos_id = $modx->getOption('new_pos_id', $scriptProperties, 0);
-$col = $modx->getOption('col', $scriptProperties, '');
-$object_id = $modx->getOption('object_id', $scriptProperties, 0);
-$showtrash = $modx->getOption('showtrash', $scriptProperties, '');
+$modx->migx->handleOrderPositions($xpdo,$config,$scriptProperties);
 
-
-$col = explode(':', $col);
-if (!empty($newpos_id) && !empty($object_id) && count($col) > 1) {
-    $workingobject = $xpdo->getObject($classname, $object_id);
-    $posfield = $col[0];
-    $position = $col[1];
-
-    //$parent = $workingobject->get('parent');
-    $c = $xpdo->newQuery($classname);
-    //$c->where(array('deleted'=>0 , 'parent'=>$parent));
-    if ($checkdeleted) {
-        if (!empty($showtrash)) {
-            $c->where(array($classname . '.deleted' => '1'));
-        } else {
-            $c->where(array($classname . '.deleted' => '0'));
-        }
-    }
-    
-    $c->sortby($posfield);
-    //$c->sortby('name');
-    
-    if ($collection = $xpdo->getCollection($classname, $c)) {
-        $curpos = 1;
-        foreach ($collection as $object) {
-            $id = $object->get('id');
-            if ($id == $newpos_id && $position == 'before') {
-                $workingobject->set($posfield, $curpos);
-                $workingobject->save();
-                $curpos++;
-            }
-            if ($id != $object_id) {
-                $object->set($posfield, $curpos);
-                $object->save();
-                $curpos++;
-            }
-            if ($id == $newpos_id && $position == 'after') {
-                $workingobject->set($posfield, $curpos);
-                $workingobject->save();
-                $curpos++;
-            }
-        }
-    }
+//clear cache for all contexts
+$collection = $modx->getCollection('modContext');
+foreach ($collection as $context) {
+    $contexts[] = $context->get('key');
 }
-
 
 $modx->cacheManager->refresh(array(
     'db' => array(),

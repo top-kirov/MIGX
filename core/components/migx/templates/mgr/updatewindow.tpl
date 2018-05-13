@@ -3,7 +3,7 @@
 MODx.window.UpdateTvdbItem = function(config) {
     config = config || {};
     Ext.applyIf(config,{
-        title:'{/literal}{$update_win_title}{literal}'
+        title:'{/literal}{$update_win_title|escape}{literal}'
         ,id: '{/literal}modx-window-mi-grid-update-{$win_id}{literal}'
         ,width: '1000'
 		,closeAction: 'hide'
@@ -13,6 +13,7 @@ MODx.window.UpdateTvdbItem = function(config) {
         ,maximizable: true
         ,allowDrop: true
         ,height: '600'
+        ,constrain: true
         //,saveBtnText: _('done')
         ,forceLayout: true
         ,autoScroll: true
@@ -36,11 +37,13 @@ MODx.window.UpdateTvdbItem = function(config) {
 
     //this.on('show',this.onShow,this);
     this.on('hide',this.onHideWindow,this);
+    this.on('resize',this.onResizeWindow,this);
     this.addEvents({
         success: true
         ,failure: true
         ,beforeSubmit: true
 		,hide:true
+        ,resize:true
 		//,show:true
     });
     this._loadForm();	
@@ -49,7 +52,18 @@ Ext.extend(MODx.window.UpdateTvdbItem,Ext.Window,{
     cancel: function(){
 
         this.hide();
-    },         
+    },
+    onResizeWindow: function(){
+        if (typeof(this.tabs) != 'undefined'){
+            this.tabs.doLayout();
+            //workarround for tab-resizing-issue
+            var activeTab = this.tabs.getActiveTab();
+            var id = activeTab.getItemId();
+            this.tabs.setActiveTab(100);
+            this.tabs.setActiveTab(id);
+        }
+        //        
+    },               
     onHideWindow: function(){
    
         var v = this.fp.getForm().getValues();
@@ -97,7 +111,7 @@ Ext.extend(MODx.window.UpdateTvdbItem,Ext.Window,{
     }
     ,submit: function() {
         var object_id = this.baseParams.object_id;
-        
+               
         if (this.action == 'd'){
             MODx.fireResourceFormChange();
             object_id = 'new';     
@@ -122,9 +136,13 @@ Ext.extend(MODx.window.UpdateTvdbItem,Ext.Window,{
                     ,object_id: object_id
                     ,tv_id: this.baseParams.tv_id
                     ,wctx: this.baseParams.wctx
+                    ,tempParams: this.baseParams.tempParams || ''
                 }
                 ,listeners: {
                     'success': {fn:this.onSubmitSuccess,scope:this}
+                    ,'failure':{fn:function(r) {
+                        return this.fireEvent('failure',r);
+                    },scope:this}
                 }
             });
             return true;
@@ -208,6 +226,7 @@ Ext.extend(MODx.window.UpdateTvdbItem,Ext.Window,{
     ,onShow: function() {
         //console.log('onshow');
         if (this.fp.isloading) return;
+        //console.log('onshow2');
         this.fp.isloading=true;
         this.fp.autoLoad.params.record_json=this.baseParams.record_json;
         this.fp.doAutoLoad();
@@ -224,9 +243,7 @@ MODx.panel.MidbGridUpdate{/literal}{$win_id}{literal} = function(config) {
         ,url: config.url
         ,baseParams: config.baseParams	
         ,class_key: ''
-        ,bodyStyle: 'padding: 15px;'
         ,layout: 'anchor'
-        ,width:'98%'
         , height:'98%'            
         ,anchorSize: {width:'98%', height:'98%'}
         ,autoLoad: this.autoload(config)

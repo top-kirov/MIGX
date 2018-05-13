@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 /**
  * MIGXdb
@@ -40,10 +40,15 @@ if (empty($scriptProperties['object_id'])) {
 $errormsg = '';
 $config = $modx->migx->customconfigs;
 
-$hooksnippets = $modx->fromJson($modx->getOption('hooksnippets',$config,''));
-if (is_array($hooksnippets)){
-    $hooksnippet_aftersave = $modx->getOption('aftersave',$hooksnippets,'');
+$hooksnippets = $modx->fromJson($modx->getOption('hooksnippets', $config, ''));
+if (is_array($hooksnippets)) {
+	$hooksnippet_beforesave = $modx->getOption('beforesave', $hooksnippets, '');
+    $hooksnippet_aftersave = $modx->getOption('aftersave', $hooksnippets, '');
+    $hooksnippet_validate = $modx->getOption('validate', $hooksnippets, '');
 }
+
+$tempparams = json_decode($modx->getOption('tempParams', $scriptProperties, ''), true);
+$button = $modx->getOption('button', $tempparams, '');
 
 $prefix = isset($config['prefix']) && !empty($config['prefix']) ? $config['prefix'] : null;
 if (isset($config['use_custom_prefix']) && !empty($config['use_custom_prefix'])) {
@@ -52,6 +57,7 @@ if (isset($config['use_custom_prefix']) && !empty($config['use_custom_prefix']))
 
 if (!empty($config['packageName'])) {
     $packageNames = explode(',', $config['packageName']);
+    $packageName = isset($packageNames[0]) ? $packageNames[0] : '';
 
     if (count($packageNames) == '1') {
         //for now connecting also to foreign databases, only with one package by default possible
@@ -68,8 +74,26 @@ if (!empty($config['packageName'])) {
         }
         $xpdo = &$modx;
     }
-}else{
-    $xpdo = &$modx;    
+    if ($this->modx->lexicon) {
+        $this->modx->lexicon->load($packageName . ':default');
+    }
+} else {
+    $xpdo = &$modx;
+}
+
+$snippetProperties = array();
+$snippetProperties['config'] = &$config;
+$snippetProperties['scriptProperties'] = &$scriptProperties;
+
+if (!empty($hooksnippet_beforesave)) {
+    $result = $modx->runSnippet($hooksnippet_beforesave, $snippetProperties);
+    $result = $modx->fromJson($result);
+    $error = $modx->getOption('error', $result, '');
+    if (!empty($error)) {
+        $updateerror = true;
+        $errormsg = $error;
+        return;
+    }
 }
 
 $classname = $config['classname'];
@@ -100,7 +124,12 @@ if (!empty($joinalias)) {
     if ($fkMeta = $xpdo->getFKDefinition($classname, $joinalias)) {
         $joinclass = $fkMeta['class'];
         if ($checkConnected && $fkMeta['owner'] == 'foreign') {
-            $scriptProperties[$fkMeta['local']] = $resource_id;
+            $joinfield = $fkMeta['foreign'];
+            $joinvalue = $resource_id;
+            if ($parent_object = $modx->getObject($joinclass, $resource_id)) {
+                $joinvalue = $parent_object->get($joinfield);
+            }
+            $scriptProperties[$fkMeta['local']] = $joinvalue;
         }
         $joinvalues = array();
     } else {
@@ -184,6 +213,25 @@ switch ($task) {
 
                             }
                             break;
+                        default:
+                            $snippetProperties = array();
+                            $snippetProperties['object'] = &$object;
+                            $snippetProperties['postvalues'] = &$postvalues;
+                            $snippetProperties['scriptProperties'] = &$scriptProperties;
+                            $snippetProperties['form_field'] = $form_field;
+                            $snippetProperties['value'] = $value;
+                            $snippetProperties['validation_type'] = $validation_type;
+
+                            if (!empty($hooksnippet_validate)) {
+                                $result = $modx->runSnippet($hooksnippet_validate, $snippetProperties);
+                                $result = $modx->fromJson($result);
+                                $error = $modx->getOption('error', $result, '');
+                                if (!empty($error)) {
+                                    $validation_errors[] = $error;
+                                }
+                            }
+                            break;
+
                     }
                 }
             }
@@ -210,8 +258,8 @@ switch ($task) {
         if (count($validation_errors) > 0) {
             $updateerror = true;
             foreach ($validation_errors as $error) {
-                $field_caption = $modx->getOption('caption',$error,'');
-                $validation_type = $modx->getOption('validation_type',$error,'');
+                $field_caption = $modx->getOption('caption', $error, '');
+                $validation_type = $modx->getOption('validation_type', $error, '');
                 //$errormsg .=   $modx->lexicon('quip.thread_err_save');
                 $errormsg .= $field_caption . ': ' . $validation_type . '<br/>';
             }
@@ -233,7 +281,7 @@ switch ($task) {
             $tempvalues['createdon'] = $object->get('createdon');
             $tempvalues['publishedon'] = $object->get('publishedon');
         }
-        
+
         if (isset($postvalues['published']) && $postvalues['published'] == '1') {
             $pub = $object->get('published');
             if (empty($pub)) {
@@ -266,7 +314,8 @@ switch ($task) {
             $postvalues['publishedon'] = $tempvalues['publishedon'];
         }
 
-        if (!$is_container && !empty($postvalues['resource_id'])) {
+
+        if (isset($is_container) && !$is_container && !empty($postvalues['resource_id'])) {
             $postvalues['customerid'] = $postvalues['resource_id'];
         }
 
@@ -292,15 +341,15 @@ $snippetProperties['object'] = &$object;
 $snippetProperties['postvalues'] = $postvalues;
 $snippetProperties['scriptProperties'] = $scriptProperties;
 
-if (!empty($hooksnippet_aftersave)){
-	$result = $modx->runSnippet($hooksnippet_aftersave,$snippetProperties);
-	$result = $modx->fromJson($result);
-	$error  = $modx->getOption('error',$result,'');
+if (!empty($hooksnippet_aftersave)) {
+    $result = $modx->runSnippet($hooksnippet_aftersave, $snippetProperties);
+    $result = $modx->fromJson($result);
+    $error = $modx->getOption('error', $result, '');
     if (!empty($error)) {
         $updateerror = true;
         $errormsg = $error;
         return;
-    }	
+    }
 }
 
 if ($has_jointable && !empty($joinalias)) {
@@ -322,6 +371,16 @@ if ($has_jointable && !empty($joinalias)) {
         $joinobject->save();
     }
 }
+
+if ($button == 'addbefore' || $button == 'addafter') {
+    $pos_field = !empty($config['getlistsort']) ? $config['getlistsort'] : 'pos';
+    $position = $button == 'addbefore' ? 'before' : 'after';
+    $scriptProperties['col'] = $pos_field . ':' . $position;
+    $scriptProperties['new_pos_id'] = $modx->getOption('original_id', $tempparams, '');
+    $scriptProperties['object_id'] = $object->get('id');
+    $modx->migx->handleOrderPositions($xpdo, $config, $scriptProperties);
+}
+
 
 //clear cache for all contexts
 $collection = $modx->getCollection('modContext');

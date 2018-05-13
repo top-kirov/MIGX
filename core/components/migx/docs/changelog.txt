@@ -1,5 +1,45 @@
 Changelog for MIGX.
 
+MIGX 2.12.0
+==============
+select db-fields from defined class and its joins for formtabs and columns
+add categories and a category-filter to MIGX Configs
+multiple grouping-levels for &groupingField
+hooksnippet getformnames
+add snippet migxAutoPublish for publishing by Cronjobs
+add beforesave - hook to update-processor
+allow string in where-property
+add a default schema-template, used at create package
+and some bugfixes
+
+MIGX 2.11.0
+==============
+groupingfield, preparesnippet, _total, _count, improve @CODE
+hooksnippet beforecreateform
+
+MIGX 2.10.0
+==============
+hooksnippet getcustomconfigs for importcsvmigx
+support layout-rows/columns in formtabs
+contextmenu 'flat formtabs'
+multiupload to db, resizeOnUpload - plugin
+[packagemanager] Add Extension Package - feature
+respect joinalias in export.php and handlepositionselector.php
+possible to use TV-value in migxresourcemediapath - snippet
+[getImageList] inherit_children_tvname
+MIGXdb add item before/after
+
+MIGX 2.9.7
+==============
+add emtpyTpl
+fix some MIGX-grid width - issues
+import csv to MIGX
+
+MIGX 2.9.6
+==============
+hooksnippet getcustomconfigs for export-processor
+fix missing formtabs after saving
+
 MIGX 2.9.5
 ==============
 column-actionbuttons also for MIGX

@@ -58,9 +58,9 @@ class migxFormProcessor extends modProcessor {
         if (!empty($configs)) {
             $this->modx->migx->config['configs'] = $configs;
             $this->modx->migx->loadConfigs(true, true, $scriptProperties, $sender);
-
-
         }
+
+        $config = $this->modx->migx->customconfigs;
 
         $formtabs = $this->modx->migx->getTabs();
         $fieldid = 0;
@@ -121,6 +121,17 @@ class migxFormProcessor extends modProcessor {
                     }
                 }
 
+                $hooksnippets = $this->modx->fromJson($this->modx->getOption('hooksnippets', $config, ''));       
+ 
+                if (is_array($hooksnippets)) {
+                    $hooksnippet = $this->modx->getOption('getformnames', $hooksnippets, '');
+                    if (!empty($hooksnippet)) {
+                        $snippetProperties = array();
+                        $snippetProperties['formnames'] = &$formnames;
+                        $result = $this->modx->runSnippet($hooksnippet, $snippetProperties);
+                    }
+                }                
+
                 $controller->setPlaceholder('formnames', $formnames);
 
                 if (isset($record['MIGX_formname'])) {
@@ -139,15 +150,25 @@ class migxFormProcessor extends modProcessor {
 
 
         $categories = array();
-        $this->modx->migx->createForm($formtabs, $record, $allfields, $categories, $scriptProperties);
+        //$js = '';
+        $result = $this->modx->migx->createForm($formtabs, $record, $allfields, $categories, $scriptProperties);
         $formcaption = $this->modx->getOption('formcaption', $this->modx->migx->customconfigs, '');
         $formcaption = !empty($formcaption) ? $this->modx->migx->renderChunk($formcaption, $record, false, false) : '';
+        
+        //echo '<pre>' . print_r($categories,1) . '</pre>';
+        
+        if (isset($result['error'])){
+            $controller->setPlaceholder('error', $result['error']);
+        }
+        
         $controller->setPlaceholder('formcaption', $formcaption);
         $controller->setPlaceholder('fields', $this->modx->toJSON($allfields));
         $controller->setPlaceholder('customconfigs', $this->modx->migx->customconfigs);
         $controller->setPlaceholder('categories', $categories);
+        //$controller->setPlaceholder('scripts', $js);
         $controller->setPlaceholder('properties', $scriptProperties);
-        $controller->setPlaceholder('win_id', $scriptProperties['tv_id']);
+        //Todo: check for MIGX and MIGXdb, if tv_id is needed.
+        $controller->setPlaceholder('win_id', isset($scriptProperties['win_id']) ? $scriptProperties['win_id'] : $scriptProperties['tv_id']);
 
         if (!empty($_REQUEST['showCheckbox'])) {
             $controller->setPlaceholder('showCheckbox', 1);

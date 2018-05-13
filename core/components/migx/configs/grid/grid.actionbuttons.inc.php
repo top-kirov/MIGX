@@ -44,11 +44,22 @@ $gridactionbuttons['resetwinposition']['text'] = "'Reset Win Position'";
 $gridactionbuttons['resetwinposition']['handler'] = 'this.resetWinPosition';
 $gridactionbuttons['resetwinposition']['scope'] = 'this';
 
-$gridactionbuttons['emptyThrash']['text'] = "'[[%migx.emptythrash]]'";
-$gridactionbuttons['emptyThrash']['handler'] = 'this.emptyThrash';
-$gridactionbuttons['emptyThrash']['scope'] = 'this';
+$gridactionbuttons['emptyTrash']['text'] = "'[[%migx.emptytrash]]'";
+$gridactionbuttons['emptyTrash']['handler'] = 'this.emptyTrash';
+$gridactionbuttons['emptyTrash']['scope'] = 'this';
 
 $gridactionbuttons['uploadfiles']['text'] = "'[[%migx.upload_images]]'";
 $gridactionbuttons['uploadfiles']['handler'] = 'this.uploadFiles,this.uploadSuccess,this.loadFromSource';
 $gridactionbuttons['uploadfiles']['scope'] = 'this';
 $gridactionbuttons['uploadfiles']['standalone'] = '1';
+
+$gridactionbuttons['uploadfiles_db']['text'] = "'[[%migx.upload_images]]'";
+$gridactionbuttons['uploadfiles_db']['handler'] = 'this.uploadFiles,this.uploadSuccess,this.loadFromSource_db';
+$gridactionbuttons['uploadfiles_db']['scope'] = 'this';
+$gridactionbuttons['uploadfiles_db']['standalone'] = '1';
+
+$gridactionbuttons['importcsvmigx']['text'] = "'[[%migx.import_csv]]'";
+$gridactionbuttons['importcsvmigx']['handler'] = 'this.selectImportFile,this.importCsvMigx';
+$gridactionbuttons['importcsvmigx']['scope'] = 'this';
+$gridactionbuttons['importcsvmigx']['standalone'] = '1';
+

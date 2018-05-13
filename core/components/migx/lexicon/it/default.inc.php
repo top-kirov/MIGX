@@ -17,6 +17,7 @@ $_lang['migx.add'] = 'Aggiungi Elemento';
 $_lang['migx.remove_confirm'] = 'Rimuovi Elemento?';
 $_lang['migx.edit'] = 'Modifica';
 $_lang['migx.edit_raw'] = 'Modifica raw';
+$_lang['migx.edit_flat'] = 'Flat formtabs';
 $_lang['migx.export_import'] = 'Esporta/Importa';
 $_lang['migx.remove'] = 'Rimuovi';
 $_lang['migx.duplicate'] = 'Duplica';
@@ -62,7 +63,7 @@ $_lang['migx.max_records_alert'] = 'Numero massimo di record consentiti raggiunt
 
 $_lang['migx.selector_options'] = 'Opzioni';
 
-$_lang['migx.emptythrash_confirm'] = 'Svuota cestino. Sei sicuro?';
-$_lang['migx.emptythrash'] = 'Svuota cestino';
+$_lang['migx.emptytrash_confirm'] = 'Svuota cestino. Sei sicuro?';
+$_lang['migx.emptytrash'] = 'Svuota cestino';
 $_lang['migx.search'] = 'Cerca...';
 $_lang['migx.reset_all'] = 'Reset all';

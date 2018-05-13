@@ -37,8 +37,10 @@
 
 
 $tvname = $modx->getOption('tvname', $scriptProperties, '');
+$inherit_children_tvname = $modx->getOption('inherit_children_tvname', $scriptProperties, '');
 $tpl = $modx->getOption('tpl', $scriptProperties, '');
 $wrapperTpl = $modx->getOption('wrapperTpl', $scriptProperties, '');
+$emptyTpl = $modx->getOption('emptyTpl', $scriptProperties, ''); 
 $limit = $modx->getOption('limit', $scriptProperties, '0');
 $offset = $modx->getOption('offset', $scriptProperties, 0);
 $totalVar = $modx->getOption('totalVar', $scriptProperties, 'total');
@@ -71,7 +73,7 @@ $splits = $modx->fromJson($modx->getOption('splits', $scriptProperties, 0));
 $splitTpl = $modx->getOption('splitTpl', $scriptProperties, '');
 $splitSeparator = $modx->getOption('splitSeparator', $scriptProperties, '');
 $inheritFrom = $modx->getOption('inheritFrom', $scriptProperties, ''); //commaseparated list of resource-ids or/and the keyword 'parents' where to inherit from
-$inheritFrom = !empty($inheritFrom) ? explode(',',$inheritFrom) : '';
+$inheritFrom = !empty($inheritFrom) ? explode(',', $inheritFrom) : '';
 
 $modx->setPlaceholder('docid', $docid);
 
@@ -118,24 +120,30 @@ if (!empty($tvname)) {
             $jsonVarKey = $properties['jsonvarkey'];
             $outputvalue = isset($_REQUEST[$jsonVarKey]) ? $_REQUEST[$jsonVarKey] : $outputvalue;
         }
-        
-        if (empty($outputvalue)){
+
+        if (empty($outputvalue)) {
             $outputvalue = $tv->renderOutput($docid);
-            if (empty($outputvalue) && !empty($inheritFrom)){
-                foreach ($inheritFrom as $from){
-                    if ($from == 'parents'){
-                        $outputvalue = $tv->processInheritBinding('',$docid);
-                    }else{
+            if (empty($outputvalue) && !empty($inheritFrom)) {
+                foreach ($inheritFrom as $from) {
+                    if ($from == 'parents') {
+                        if (!empty($inherit_children_tvname)){
+                            //try to get items from optional MIGX-TV for children
+                            if ($inh_tv = $modx->getObject('modTemplateVar', array('name' => $inherit_children_tvname))) {
+                                $outputvalue = $inh_tv->processInheritBinding('', $docid);    
+                            }
+                        }
+                        $outputvalue = empty($outputvalue) ? $tv->processInheritBinding('', $docid) : $outputvalue;
+                    } else {
                         $outputvalue = $tv->renderOutput($from);
                     }
-                    if (!empty($outputvalue)){
+                    if (!empty($outputvalue)) {
                         break;
-                    }                    
+                    }
                 }
             }
         }
 
-       
+
         /*
         *   get inputTvs 
         */
@@ -146,16 +154,17 @@ if (!empty($tvname)) {
             // Note: use same field-names and inputTVs in all forms
             $inputTvs = $migx->extractInputTvs($formtabs);
         }
-        if ($migx->source = $tv->getSource($migx->working_context, false)){
+        if ($migx->source = $tv->getSource($migx->working_context, false)) {
             $migx->source->initialize();
         }
-        
+
     }
 
 
 }
 
 if (empty($outputvalue)) {
+    $modx->setPlaceholder($totalVar, 0);
     return '';
 }
 
@@ -419,6 +428,16 @@ if (!empty($o) && !empty($wrapperTpl)) {
         $chunk->setCacheable(false);
         $chunk->setContent($template[$wrapperTpl]);
         $properties['output'] = $o;
+        $o = $chunk->process($properties);
+    }
+}
+
+if (empty($o) && !empty($emptyTpl)) {
+    $template = $migx->getTemplate($emptyTpl);
+    if ($template[$emptyTpl]) {
+        $chunk = $modx->newObject('modChunk');
+        $chunk->setCacheable(false);
+        $chunk->setContent($template[$emptyTpl]);
         $o = $chunk->process($properties);
     }
 }

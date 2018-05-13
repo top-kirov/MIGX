@@ -1,8 +1,7 @@
 <input id="tv{$tv->id}" name="tv{$tv->id}" type="hidden" class="textfield" value="{$tv->get('value')|escape}"{$style} tvtype="{$tv->type}" />
 <div id="tvpanel{$tv->id}" style="width:100%">
 </div>
-<div id="tvpanel2{$tv->id}">
-</div>
+
 <br/>
 
 <script type="text/javascript">
@@ -70,7 +69,7 @@ Ext.extend(MODx.loadMIGXdbGridButton{/literal}{$tv->id}{literal},Ext.Button,{
 	    var resource_id = '{/literal}{$resource.id}{literal}';
         var object_id = '{/literal}{$object_id}{literal}';
         
-        if ('{/literal}{$customconfigs.check_resid}{literal}' == '1'){
+        if ('{/literal}{$customconfigs.check_resid|default}{literal}' == '1'){
         if (object_id != ''){
             if (object_id == 'new'){
                 if (!init){

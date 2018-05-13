@@ -17,6 +17,7 @@ $_lang['migx.add'] = 'Datensatz erstellen';
 $_lang['migx.remove_confirm'] = 'Datensatz entfernen?';
 $_lang['migx.edit'] = 'Bearbeiten';
 $_lang['migx.edit_raw'] = 'Rohdaten bearbeiten';
+$_lang['migx.edit_flat'] = 'Flache Formtabs';
 $_lang['migx.export_import'] = 'Export/Import';
 $_lang['migx.remove'] = 'Entfernen';
 $_lang['migx.duplicate'] = 'Duplizieren';
@@ -62,7 +63,18 @@ $_lang['migx.max_records_alert'] = 'Maximale Anzahl an Datensätzen erreicht';
 
 $_lang['migx.selector_options'] = 'Optionen';
 
-$_lang['migx.emptythrash_confirm'] = 'Papierkorb wirklich leeren?';
-$_lang['migx.emptythrash'] = 'Papierkorb leeren';
+$_lang['migx.emptytrash_confirm'] = 'Papierkorb wirklich leeren?';
+$_lang['migx.emptytrash'] = 'Papierkorb leeren';
 $_lang['migx.search'] = 'Suche...';
 $_lang['migx.reset_all'] = 'Alle zurücksetzen';
+$_lang['migx.import_csv'] = 'CSV Importieren';
+$_lang['migx.add_field'] = 'Neues Feld';
+$_lang['migx.add_formtab'] = 'Formtab erstellen';
+$_lang['migx.add_formlayout'] = 'Layout';
+$_lang['migx.add_layoutcolumn'] = 'Layout Spalte';
+
+$_lang['migx.add_item_before'] = 'Datensatz davor einfügen';
+$_lang['migx.add_item_after'] = 'Datensatz danach einfügen';
+
+$_lang['migx.select_dbfields'] = 'DB Felder auswählen';
+$_lang['migx.select_dbfields_desc'] = 'Bevor Datenbankfelder ausgewählt werden können, müssen die packageName, classname und joins - Konfigurationen befüllt sein und die Konfiguration gespeichert werden!';

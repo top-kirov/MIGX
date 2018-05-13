@@ -14,9 +14,10 @@ $_lang['migx.management_desc'] = 'Manage your MIGX - Configs here. You can edit 
 
 $_lang['migx.noitems'] = 'No items found';
 $_lang['migx.add'] = 'Add Item';
-$_lang['migx.remove_confirm'] = 'Remove Item?';
+$_lang['migx.remove_confirm'] = 'Remove Item?'; 
 $_lang['migx.edit'] = 'Edit';
 $_lang['migx.edit_raw'] = 'Edit raw';
+$_lang['migx.edit_flat'] = 'Flat formtabs';
 $_lang['migx.export_import'] = 'Export/Import';
 $_lang['migx.remove'] = 'Remove';
 $_lang['migx.duplicate'] = 'Duplicate';
@@ -62,7 +63,18 @@ $_lang['migx.max_records_alert'] = 'Max amount of records reached';
 
 $_lang['migx.selector_options'] = 'Options';
 
-$_lang['migx.emptythrash_confirm'] = 'Empty Trash. Are you sure?';
-$_lang['migx.emptythrash'] = 'Empty Trash';
+$_lang['migx.emptytrash_confirm'] = 'Empty Trash. Are you sure?';
+$_lang['migx.emptytrash'] = 'Empty Trash';
 $_lang['migx.search'] = 'Search...';
 $_lang['migx.reset_all'] = 'Reset all';
+$_lang['migx.import_csv'] = 'Import CSV';
+$_lang['migx.add_field'] = 'Add Field';
+$_lang['migx.add_formtab'] = 'Add Formtab';
+$_lang['migx.add_formlayout'] = 'Layout';
+$_lang['migx.add_layoutcolumn'] = 'Layout Column';
+
+$_lang['migx.add_item_before'] = 'Add item before';
+$_lang['migx.add_item_after'] = 'Add item after';
+
+$_lang['migx.select_dbfields'] = 'Select db-fields';
+$_lang['migx.select_dbfields_desc'] = 'Before you can select db-fields, put something into the packageName, classname and joins - configs and save the config!';

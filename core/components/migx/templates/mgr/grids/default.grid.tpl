@@ -10,7 +10,7 @@ MODx.grid.multiTVdbgrid{/literal}{$win_id}{literal} = function(config) {
     // add empty pathconfig (source) to array to match number of col in renderimage
     var pc=[''];
     var renderer = null;
-    var pageSize = '{/literal}{$customconfigs.gridpagesize}{literal}';
+    var pageSize = '{/literal}{$customconfigs.gridpagesize|default}{literal}';
     if (pageSize != ''){
         config.pageSize=parseInt(pageSize); 
     }
@@ -141,7 +141,7 @@ Ext.extend(MODx.grid.multiTVdbgrid{/literal}{$win_id}{literal},MODx.grid.Grid,{
         var tempParams = tempParams || null;
         var input_prefix = Ext.id(null,'inp_');
         var co_id = '{/literal}{$connected_object_id}{literal}';
-        {/literal}{if $properties.autoResourceFolders == 'true'}{literal}
+        {/literal}{if $properties.autoResourceFolders|default == 'true'}{literal}
         if (resource_id == 0){
             alert (_('migx.save_resource'));
             return;
@@ -152,6 +152,7 @@ Ext.extend(MODx.grid.multiTVdbgrid{/literal}{$win_id}{literal},MODx.grid.Grid,{
            var object_id = 'new';
         }else{
            var object_id = this.menu.record.id;
+           //var object_id = 3;
         }
         
         var isnew = (action == 'u') ? '0':'1';
@@ -195,6 +196,7 @@ Ext.extend(MODx.grid.multiTVdbgrid{/literal}{$win_id}{literal},MODx.grid.Grid,{
             ,action: action
             ,baseParams : {
 			    action: 'mgr/migxdb/fields',
+                win_id: '{/literal}{$win_id}{literal}',
 				tv_id: '{/literal}{$tv_id}{literal}',
 				tv_name: '{/literal}{$tv->name}{literal}',
 				'class_key': 'modDocument',
@@ -218,7 +220,7 @@ Ext.extend(MODx.grid.multiTVdbgrid{/literal}{$win_id}{literal},MODx.grid.Grid,{
         var url = '{/literal}{$config.connectorUrl}{literal}';
         var tv = Ext.get('tv{/literal}{$tv_id}{literal}');
         var items = tv ? tv.dom.value : '';
-        var jsonvarkey = '{/literal}{$properties.jsonvarkey}{literal}';
+        var jsonvarkey = '{/literal}{$properties.jsonvarkey|default}{literal}';
         var action = action||'a';
         var storeParams = Ext.util.JSON.encode(this.store.baseParams);
         //console.log(co_id);
@@ -266,7 +268,7 @@ Ext.extend(MODx.grid.multiTVdbgrid{/literal}{$win_id}{literal},MODx.grid.Grid,{
             ,resource_id: resource_id
             ,co_id: co_id
             ,storeParams : storeParams
-            ,title: '{/literal}{$customconfigs.iframeWindowTitle}{literal}'
+            ,title: '{/literal}{$customconfigs.iframeWindowTitle|default}{literal}'
             ,iframeTpl: tpl
         });
     }    		        
@@ -437,6 +439,40 @@ Ext.extend(MODx.MigxTreeCombo,Ext.form.ComboBox,{
     }
 });
 Ext.reg('migx-treecombo', MODx.MigxTreeCombo);
+
+var MIGx = MIGx || {};
+ 
+MIGx.updateGrid = function() {
+    /*
+    var grids = this.el.select('.tv_modx-grid-multitvgrid_items');
+    grids.each(function(grid){
+        Ext.getCmp(grid.id).getView().refresh();
+    });
+    */  
+};
+ 
+Ext.ComponentMgr.onAvailable('modx-grid-multitvdbgrid-{/literal}{$win_id}{literal}', function() {
+    /*
+    if (this.configs == 'memsnippets'){
+        console.log(this);
+        this.menu = this.menu || new Ext.menu.Menu(this.config.menuConfig);;
+        this.menu.record = this.menu.record || {};
+        this.menu.record.id = 3;
+        this.loadWin(null,'u');
+    }
+    */
+    /*
+    Ext.apply(this, {
+        listeners: {
+            tabchange: MIGx.updateGrid,
+            afterlayout: MIGx.updateGrid,
+            resize: MIGx.updateGrid
+        }
+    });
+    */
+     
+});
+
 
 {/literal}
 

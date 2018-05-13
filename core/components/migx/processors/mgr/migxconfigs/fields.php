@@ -55,14 +55,58 @@ if (!empty($scriptProperties['tempParams']) && $scriptProperties['tempParams'] =
 
     $tabs = $modx->fromJson($record['formtabs']);
     $formtabs = array();
+    $allfields = array();
+
     if (is_array($tabs) && count($tabs) > 0) {
         foreach ($tabs as $tab) {
-            $fields = is_array($tab['fields']) ? $tab['fields'] :$modx->fromJson($tab['fields']) ;
+            $layout_id = 0;
+            $column_id = 0;
+            $field = $tab;
+            unset($field['fields']);
+            $field['MIGXtype'] = 'formtab';
+
+            $field['MIGXtyperender'] = '<h3>' . $field['MIGXtype'] . '</h3>';
+            $allfields[] = $field;
+            $fields = is_array($tab['fields']) ? $tab['fields'] : $modx->fromJson($tab['fields']);
             $tab['fields'] = $fields;
-            $formtabs[] = $tab;
+            $formtabs[] = $tab;            
+            $newfields = array();
+            if (is_array($fields)) {
+                foreach ($fields as $field) {
+                    if (isset($field['MIGXlayoutid']) && $field['MIGXlayoutid'] != $layout_id) {
+                        $layout_id = $field['MIGXlayoutid'];
+                        $column_id = 0;
+                        $tmp_field = array();
+                        $tmp_field['MIGXtype'] = 'layout';
+                        $tmp_field['MIGXtyperender'] = '<h3>.' . $tmp_field['MIGXtype'] . '</h3>';
+                        $tmp_field['MIGXlayoutcaption'] = $modx->getOption('MIGXlayoutcaption', $field, '');
+                        $tmp_field['MIGXlayoutstyle'] = $modx->getOption('MIGXlayoutstyle', $field, '');                        
+                        $newfields[] = $tmp_field;
+                    }
+                    if (isset($field['MIGXcolumnid']) && $field['MIGXcolumnid'] != $column_id) {
+                        $column_id = $field['MIGXcolumnid'];
+                        $tmp_field = array();
+                        $tmp_field['MIGXtype'] = 'column';
+                        $tmp_field['MIGXtyperender'] = '<h3>..' . $tmp_field['MIGXtype'] . '</h3>';
+                        $tmp_field['field'] = $modx->getOption('MIGXcolumnwidth', $field, '');
+                        $tmp_field['MIGXcolumnminwidth'] = $modx->getOption('MIGXcolumnminwidth', $field, '');
+                        $tmp_field['MIGXcolumncaption'] = $modx->getOption('MIGXcolumncaption', $field, '');
+                        $tmp_field['MIGXcolumnstyle'] = $modx->getOption('MIGXcolumnstyle', $field, '');
+                        $newfields[] = $tmp_field;
+                    }
+
+                    $field['MIGXtype'] = 'field';
+                    $field['MIGXtyperender'] = '<h3>...' . $field['MIGXtype'] . '</h3>';
+                    $newfields[] = $field;
+                }
+            }
+
+            $tab['fields'] = $newfields;
+            $allfields = array_merge($allfields, $newfields);
         }
     }
 
-    $record['formtabs'] = $modx->toJson($formtabs);
+    $record['formtabs'] = $modx->migx->indent($modx->toJson($formtabs));
+    $record['formlayouts'] = $modx->toJson($allfields);
 
 }
