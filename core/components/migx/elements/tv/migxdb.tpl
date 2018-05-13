@@ -54,17 +54,17 @@ Ext.reg('modx-iframe-mi-preview',Ext.ux.IFrameComponent);
 */     
 
 
-MODx.loadMIGXdbGridButton = function(config) {
+MODx.loadMIGXdbGridButton{/literal}{$tv->id}{literal} = function(config) {
     config = config || {};
     Ext.applyIf(config,{
         handler: function() { this.loadGrid(); }
     });
-    MODx.loadMIGXdbGridButton.superclass.constructor.call(this,config);
+    MODx.loadMIGXdbGridButton{/literal}{$tv->id}{literal}.superclass.constructor.call(this,config);
     this.options = config;
     this.config = config;
 };
 
-Ext.extend(MODx.loadMIGXdbGridButton,Ext.Button,{
+Ext.extend(MODx.loadMIGXdbGridButton{/literal}{$tv->id}{literal},Ext.Button,{
 
     loadGrid: function(init) {
 	    var resource_id = '{/literal}{$resource.id}{literal}';
@@ -110,10 +110,23 @@ Ext.extend(MODx.loadMIGXdbGridButton,Ext.Button,{
             ,object_id : '{/literal}{$object_id}{literal}' 		
         });
         this.hide();
-    }	
+        
+        panel = Ext.getCmp("modx-content");
+		tabs = Ext.getCmp("modx-resource-tabs");
+		grid = Ext.getCmp('tv{/literal}{$tv->id}{literal}_items');
+		autoresize = function(that,tab)
+		{
+			this.getView().refresh();
+			if(this.topToolbar){this.topToolbar.container.setSize("auto");this.topToolbar.setSize("auto");}
+			if(this.bottomToolbar){this.bottomToolbar.container.setSize("auto");this.bottomToolbar.setSize("auto");}
+			if(this.footerToolbar){this.footerToolbar.container.setSize("auto");this.footerToolbar.setSize("auto");}
+		}
+		tabs.on('tabchange',autoresize,grid);
+		panel.on('bodyresize',autoresize,grid);
+	}	
 
 });
-Ext.reg('modx-button-load-migxdb-grid',MODx.loadMIGXdbGridButton);
+Ext.reg('modx-button-load-migxdb-grid{/literal}{$tv->id}{literal}',MODx.loadMIGXdbGridButton{/literal}{$tv->id}{literal});
 
 
 //load migx-lang into modx-lang
@@ -123,37 +136,20 @@ for (var name in lang) {
     MODx.lang[name] = lang[name];
 }
   
-});
-
-loadGridButton = MODx.load({
-        xtype: 'modx-button-load-migxdb-grid'
+  loadGridButton{/literal}{$tv->id}{literal} = MODx.load({
+        xtype: 'modx-button-load-migxdb-grid{/literal}{$tv->id}{literal}'
         ,renderTo: 'tvpanel{/literal}{$tv->id}{literal}'
         ,text: '{/literal}{$i18n_migx_loadgrid}{literal}'
-});   
+	});   
+	
+	if ('{/literal}{$customconfigs.gridload_mode}{literal}' == '2'){
+	    loadGridButton{/literal}{$tv->id}{literal}.loadGrid(true);
+	}
+  
+});
 
-if ('{/literal}{$customconfigs.gridload_mode}{literal}' == '2'){
-    loadGridButton.loadGrid(true);
-}
 
 
-        /*
-        MODx.load({
-            xtype: 'modx-grid-multitvdbgrid'
-            ,renderTo: 'tvpanel{/literal}{$tv->id}{literal}'
-            ,tv: '{/literal}{$tv->id}{literal}'
-            ,cls:'tv{/literal}{$tv->id}{literal}_items'
-            ,id:'tv{/literal}{$tv->id}{literal}_items'
-			,columns:Ext.util.JSON.decode('{/literal}{$columns}{literal}')
-			,pathconfigs:Ext.util.JSON.decode('{/literal}{$pathconfigs}{literal}')
-            ,fields:Ext.util.JSON.decode('{/literal}{$fields}{literal}')
-            ,wctx: '{/literal}{$myctx}{literal}'
-            ,url: '{/literal}{$config.connectorUrl}{literal}'
-            ,configs: '{/literal}{$properties.configs}{literal}'
-            ,auth: '{/literal}{$auth}{literal}'
-            ,resource_id: '{/literal}{$resource.id}{literal}' 
-            ,pageSize: 10			
-        });
-        */
 
 
 {/literal}
